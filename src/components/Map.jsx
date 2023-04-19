@@ -2,20 +2,33 @@ import React, { useState, useEffect } from "react";
 import ReactMapGL, { Marker, Popup } from "react-map-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 
-const Map = ({ latitude, longitude }) => {
+const Map = () => {
   const [showPopup, setShowPopup] = useState(false);
   const [address, setAddress] = useState("");
+  const [coordinates, setCoordinates] = useState({
+    latitude: 37.773972,
+    longitude: -122.431297,
+  });
+
+  const handleMapClick = (e) => {
+    // console.log(e.lngLat);
+    setCoordinates({
+      latitude: e.lngLat.lat,
+      longitude: e.lngLat.lng,
+    });
+  };
+
   const [viewport, setViewport] = useState({
     width: "100vw",
     height: "100vh",
-    latitude: latitude,
-    longitude: longitude,
+    latitude: coordinates.latitude,
+    longitude: coordinates.longitude,
     zoom: 8,
   });
 
   useEffect(() => {
     if (showPopup) {
-      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${process.env.REACT_APP_MAPBOX_TOKEN}`;
+      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${coordinates.longitude},${coordinates.latitude}.json?access_token=${process.env.REACT_APP_MAPBOX_TOKEN}`;
       fetch(url)
         .then((response) => response.json())
         .then((data) => {
@@ -25,7 +38,7 @@ const Map = ({ latitude, longitude }) => {
           setAddress(address);
         });
     }
-  }, [showPopup, longitude, latitude]);
+  }, [showPopup, coordinates]);
 
   return (
     <div style={{ width: "100vw", height: "100vh" }}>
@@ -37,11 +50,12 @@ const Map = ({ latitude, longitude }) => {
         transitionDuration="200"
         mapStyle="mapbox://styles/abc69/clgjol8vl007e01mjha819vr9"
         onViewportChange={(newViewport) => setViewport(newViewport)}
+        onClick={handleMapClick}
       >
         {showPopup ? (
           <Popup
-            latitude={latitude}
-            longitude={longitude}
+            latitude={coordinates.latitude}
+            longitude={coordinates.longitude}
             closeButton={true}
             closeOnClick={false}
             onClose={() => setShowPopup(false)}
@@ -53,8 +67,8 @@ const Map = ({ latitude, longitude }) => {
           ""
         )}
         <Marker
-          latitude={latitude}
-          longitude={longitude}
+          latitude={coordinates.latitude}
+          longitude={coordinates.longitude}
           offsetLeft={-3.5 * viewport.zoom}
           offsetTop={-7 * viewport.zoom}
         >
